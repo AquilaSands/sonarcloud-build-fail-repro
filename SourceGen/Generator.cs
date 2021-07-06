@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
 
 namespace SourceGen
 {
@@ -24,7 +27,10 @@ namespace SourceGen
 
         public void Execute(GeneratorExecutionContext context)
         {
-            var names = JsonConvert.DeserializeObject<IEnumerable<string>>(context.AdditionalFiles[0].GetText().ToString(), _jsonSerializerOptions);
+            // The SonarScanner for .NET also contributes additional files so locate the data file by name
+            var additionalFile = context.AdditionalFiles.Single(x => "data.json".Equals(Path.GetFileName(x.Path), System.StringComparison.OrdinalIgnoreCase));
+            var names = JsonConvert.DeserializeObject<IEnumerable<string>>(additionalFile.GetText().ToString(), _jsonSerializerOptions);
+
             foreach (var name in names)
             {
                 string source = $@"
